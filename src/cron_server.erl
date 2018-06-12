@@ -186,7 +186,7 @@ get_jobs() ->
 
 
 %% @doc
-%% Get all jobs list
+%% Delete job from list
 %%
 delete_job(MonitorRef) ->
     ok = gen_server:call(?MODULE, {delete, MonitorRef}).
