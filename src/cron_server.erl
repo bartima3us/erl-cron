@@ -11,19 +11,31 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, get_jobs/0, add_job/1]).
+-export([
+    start_link/0,
+    get_jobs/0,
+    add_job/1,
+    delete_job/1
+]).
 
 %% gen_server callbacks
--export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2,
-         code_change/3]).
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2,
+    terminate/2,
+    code_change/3
+]).
 
 -define(SERVER, ?MODULE).
 
--record(cron, {jobs=dict:new()}).
+%% Internal state
+-record(cron, {
+    jobs = dict:new()
+}).
+
+
 
 %%%===================================================================
 %%% API
@@ -37,7 +49,9 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-        gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -55,7 +69,8 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-        {ok, #cron{jobs=dict:new()}}.
+    {ok, #cron{}}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -71,16 +86,22 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({get}, _From, JobsList) ->
-  {reply, lists:reverse(dict:to_list(JobsList#cron.jobs)), JobsList};
-
 handle_call({add, Expression, Job}, _From, JobsList) ->
-  RunDate = time:get_next_run_date(Expression),
-  TimeToExecute = time:get_execute_time(Expression),
-  {ok, Pid} = job:start_link([{TimeToExecute, Job}]),
-  MonitorRef = erlang:monitor(process, Pid),
-  NewJobsList = JobsList#cron{jobs=dict:store(MonitorRef, {Pid, RunDate, Job}, JobsList#cron.jobs)},
-  {reply, job_added_successfully, NewJobsList}.
+    RunDate = time:get_next_run_date(Expression),
+    TimeToExecute = time:get_execute_time(Expression),
+    {ok, Pid} = job:start_link([{TimeToExecute, Job}]),
+    MonitorRef = erlang:monitor(process, Pid),
+    NewJobsList = dict:store(MonitorRef, {Pid, RunDate, Job}, JobsList#cron.jobs),
+    {reply, ok, JobsList#cron{jobs = NewJobsList}};
+
+handle_call(get, _From, JobsList) ->
+    Jobs = lists:reverse(dict:to_list(JobsList#cron.jobs)),
+    {reply, {ok, Jobs}, JobsList};
+
+handle_call({delete, MonitorRef}, _From, JobsList) ->
+    NewJobsList = dict:erase(MonitorRef, JobsList#cron.jobs),
+    {reply, ok, NewJobsList}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -93,7 +114,8 @@ handle_call({add, Expression, Job}, _From, JobsList) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast(_Msg, State) ->
-        {noreply, State}.
+    {noreply, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -106,8 +128,9 @@ handle_cast(_Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info({'DOWN', MonitorRef, process, _Pid, normal}, JobsList) ->
-  {noreply, JobsList#cron{jobs = dict:erase(MonitorRef, JobsList#cron.jobs)}}
-.
+    NewJobsList = dict:erase(MonitorRef, JobsList#cron.jobs),
+    {noreply, JobsList#cron{jobs = NewJobsList}}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -121,7 +144,8 @@ handle_info({'DOWN', MonitorRef, process, _Pid, normal}, JobsList) ->
 %% @end
 %%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
-        ok.
+    ok.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -132,19 +156,39 @@ terminate(_Reason, _State) ->
 %% @end
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
-        {ok, State}.
+    {ok, State}.
+
+
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
+%% @doc
+%% Add new job to cron server
+%%
 add_job({Expression, Fun}) ->
-  gen_server:call(?MODULE, {add, Expression, {func, Fun}});
-add_job({Expression, M, F, A}) ->
-  gen_server:call(?MODULE, {add, Expression, {mfa, M, F, A}});
-add_job(_) ->
-  bad_job_definition
-.
+    ok = gen_server:call(?MODULE, {add, Expression, {func, Fun}});
 
+add_job({Expression, M, F, A}) ->
+    ok = gen_server:call(?MODULE, {add, Expression, {mfa, M, F, A}});
+
+add_job(_) ->
+    {error, bad_job_definition}.
+
+
+%% @doc
+%% Get all jobs list
+%%
 get_jobs() ->
-  gen_server:call(?MODULE, {get}).
+    {ok, Jobs} = gen_server:call(?MODULE, get),
+    Jobs.
+
+
+%% @doc
+%% Get all jobs list
+%%
+delete_job(MonitorRef) ->
+    ok = gen_server:call(?MODULE, {delete, MonitorRef}).
+
+
