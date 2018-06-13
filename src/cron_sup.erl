@@ -23,12 +23,13 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    Server1 = #{id => server1,             % id mandatory
-        start => {cron_server,start_link,[]}, % {M,F,A}  mandatory
-        restart => permanent,  % optional: permanent,temporary, transient, defaults to permanent
-        shutdown => 5000,      % optional: brutal_kill, integer(), defaults to 5000 if type==worker else infinity
-        type => worker,       % optional: worker, supervisor, defaults to worker
-        modules => [cron_server]}, % optional: list of modules for hot code upgrade
-
+    Server1 = #{id => server1,                  % id mandatory
+        start => {cron_server,start_link,[]},   % {M,F,A}  mandatory
+        restart => permanent,                   % optional: permanent,temporary, transient, defaults to permanent
+        shutdown => 5000,                       % optional: brutal_kill, integer(), defaults to 5000 if type==worker else infinity
+        type => worker,                         % optional: worker, supervisor, defaults to worker
+        modules => [cron_server]                % optional: list of modules for hot code upgrade
+    },
     {ok, { {one_for_one, 5, 10}, [Server1]} }.
+
 

@@ -15,17 +15,23 @@
 -export([start_link/0, start_link/1]).
 
 %% gen_server callbacks
--export([init/1,
-  handle_call/3,
-  handle_cast/2,
-  handle_info/2,
-  terminate/2,
-  code_change/3]).
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2,
+    terminate/2,
+    code_change/3
+]).
 
 -define(SERVER, ?MODULE).
 -define(MAX_TIME_SEND_AFTER, 4233600). %% 49 days
 
--record(state, {}).
+-record(state, {
+    task    % Task (MFA or anonymous function)
+}).
+
+
 
 %%%===================================================================
 %%% API
@@ -39,10 +45,12 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-  gen_server:start_link(?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 start_link(Arguments) ->
-  gen_server:start_link(?MODULE, Arguments, []).
+    gen_server:start_link(?MODULE, Arguments, []).
+
+
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -59,16 +67,13 @@ start_link(Arguments) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-
-%% todo ar galima TimeToExecute sukišti į state?
-%% todo peržiūrėti sintaksę: ar f-jos gale taškas naujoje eilutėje; ar tarp f-jų su skirtingomis deklaracijomis reikia tarpo;
-%% todo kaip eunit failus sugeneruoti kitoje direktorijoje?
-init([{TimeToExecute, Fun}]) ->
-  check_job(TimeToExecute),
-  {ok, Fun};
+init([{TimeToExecute, Task}]) ->
+    check_job(TimeToExecute),
+    {ok, #state{task = Task}};
 
 init(_) ->
-  {ok, []}.
+    {ok, []}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -85,8 +90,9 @@ init(_) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call(_Request, _From, State) ->
-  Reply = ok,
-  {reply, Reply, State}.
+    Reply = ok,
+    {reply, Reply, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -99,7 +105,8 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast(_Msg, State) ->
-  {noreply, State}.
+    {noreply, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -111,19 +118,21 @@ handle_cast(_Msg, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_info({execute}, {func, Fun}) ->
-  Fun(),
-  exit(normal),
-  {noreply, []};
+handle_info(execute, State = #state{task = {func, Fun}}) ->
+    Fun(),
+    exit(normal),
+    {noreply, State};
 
-handle_info({execute}, {mfa, M, F, A}) ->
-  M:F(A),
-  exit(normal),
-  {noreply, []};
+handle_info(execute, State = #state{task = {mfa, M, F, A}}) ->
+    M:F(A),
+    exit(normal),
+    {noreply, State};
 
-handle_info({continue, TimeToExecute}, Job) ->
-  check_job(TimeToExecute),
-  {noreply, Job}.
+handle_info({continue, TimeToExecute}, State) ->
+    check_job(TimeToExecute),
+    {noreply, State}.
+
+
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
@@ -136,7 +145,8 @@ handle_info({continue, TimeToExecute}, Job) ->
 %% @end
 %%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
-  ok.
+    ok.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -147,17 +157,21 @@ terminate(_Reason, _State) ->
 %% @end
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
-  {ok, State}.
+    {ok, State}.
+
+
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
 check_job(TimeToExecute) ->
-  case TimeToExecute > ?MAX_TIME_SEND_AFTER of
-    true ->
-      CallAfterS = TimeToExecute - ?MAX_TIME_SEND_AFTER,
-      erlang:send_after(?MAX_TIME_SEND_AFTER * 1000, self(), {continue, CallAfterS});
-    _ ->
-      erlang:send_after(TimeToExecute * 1000, self(), {execute})
-  end.
+    case TimeToExecute > ?MAX_TIME_SEND_AFTER of
+        true ->
+            CallAfterS = TimeToExecute - ?MAX_TIME_SEND_AFTER,
+            erlang:send_after(?MAX_TIME_SEND_AFTER * 1000, self(), {continue, CallAfterS});
+        _ ->
+            erlang:send_after(TimeToExecute * 1000, self(), execute)
+    end.
+
+
