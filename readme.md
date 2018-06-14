@@ -3,11 +3,16 @@ Erlang Cron implementation
 
 Supports all standard cron fields (Minutes, Hours, Day of month, Month, Day of week) and symbols: * , - /
 
-Tested on Erlang/OTP 18, Erlang/OTP 19, Erlang/OTP 20.
+Tested on Erlang/OTP 18, Erlang/OTP 19, Erlang/OTP 20; rebar / rebar3.
 
 ## Compile
 ```
 $ rebar compile
+```
+
+## EUnit tests
+```
+$ rebar eunit
 ```
 
 ## Run
