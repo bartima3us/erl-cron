@@ -10,11 +10,18 @@
 -author("sarunas").
 
 %% API
--export([process/2, test/0]).
+-export([
+    process/2
+]).
 
 
-%%
-%%
+
+%%%===================================================================
+%%% API
+%%%===================================================================
+
+%% @doc
+%% Find next day of week from cron expression
 %%
 process({Date, Time}, SearchingDayOfWeek) ->
     DayOfWeek = calendar:day_of_the_week(Date),
@@ -25,8 +32,13 @@ process({Date, Time}, SearchingDayOfWeek) ->
     end.
 
 
-%%
-%%
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+%% @doc
+%% Day of week search recursive function
 %%
 increment({Date, Time}, SearchingDayOfWeek) ->
     {NewDate, NewTime} = time:add_time({Date, Time}, 86400),
@@ -38,10 +50,22 @@ increment({Date, Time}, SearchingDayOfWeek) ->
     end.
 
 
-%% Test
-test() ->
-    {{{2016,9,11},{0,0,0}}, true} = process({{2016,9,7},{12,14,1}}, 7),
-    {{{2016,10,24},{0,0,0}}, true} = process({{2016,10,18},{10,20,15}}, 1),
-    {{{2017,2,18},{10,20,15}}, false} = process({{2017,2,18},{10,20,15}}, 6).
+
+%%%===================================================================
+%%% EUnit tests
+%%%===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+process_test_() ->
+    [
+        ?_assertEqual(process({{2016,9,7},{12,14,1}},    [7]),        {{{2016,9,11},{0,0,0}},    true}),
+        ?_assertEqual(process({{2016,10,18},{10,20,15}}, [1]),        {{{2016,10,24},{0,0,0}},   true}),
+        ?_assertEqual(process({{2017,2,18},{10,20,15}},  [6]),        {{{2017,2,18},{10,20,15}}, false}),
+        ?_assertEqual(process({{2018,6,14},{11,20,15}},  [1, 6, 7]),  {{{2018,6,16},{0,0,0}},    true})
+    ].
+
+-endif.
 
 

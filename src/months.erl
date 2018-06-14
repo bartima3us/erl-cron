@@ -11,13 +11,17 @@
 
 %% API
 -export([
-    process/2,
-    test/0
+    process/2
 ]).
 
 
-%%
-%%
+
+%%%===================================================================
+%%% API
+%%%===================================================================
+
+%% @doc
+%% Find next months from cron expression
 %%
 process({{Y, M, D}, Time}, SearchingMonth) ->
     IsInList = lists:member(M, SearchingMonth),
@@ -27,8 +31,13 @@ process({{Y, M, D}, Time}, SearchingMonth) ->
     end.
 
 
-%%
-%%
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+%% @doc
+%% Months search recursive function
 %%
 increment({{Y, M, _D}, Time}, SearchingMonth) ->
     LastDayOfMonth = calendar:last_day_of_the_month(Y, M),
@@ -40,8 +49,22 @@ increment({{Y, M, _D}, Time}, SearchingMonth) ->
     end.
 
 
-%% Test
-test() ->
-    {{{2016,8,1},{0,0,0}}, true} = process({{2016,5,7},{12,14,1}}, 8),
-    {{{2016,2,1},{0,0,0}}, true} = process({{2015,4,18},{10,20,15}}, 2),
-    {{{2017,2,18},{0,0,0}}, false} = process({{2017,2,18},{10,20,15}}, 2).
+
+%%%===================================================================
+%%% EUnit tests
+%%%===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+process_test_() ->
+    [
+        ?_assertEqual(process({{2016,5,7},{12,14,1}}, [8]),       {{{2016,8,1},{0,0,0}},   true}),
+        ?_assertEqual(process({{2016,5,7},{12,14,1}}, [4, 8, 9]), {{{2016,8,1},{0,0,0}},   true}),
+        ?_assertEqual(process({{2016,5,7},{12,14,1}}, [5]),       {{{2016,5,7},{12,14,1}}, false}),
+        ?_assertEqual(process({{2016,5,7},{12,14,1}}, [4, 5, 6]), {{{2016,5,7},{12,14,1}}, false})
+    ].
+
+-endif.
+
+

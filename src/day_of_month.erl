@@ -10,11 +10,18 @@
 -author("sarunas").
 
 %% API
--export([process/2, test/0]).
+-export([
+    process/2
+]).
 
 
-%%
-%%
+
+%%%===================================================================
+%%% API
+%%%===================================================================
+
+%% @doc
+%% Find next day of month from cron expression
 %%
 process({{Y, M, D}, Time}, SearchingDayOfMonth) ->
     IsInList = lists:member(D, SearchingDayOfMonth),
@@ -24,8 +31,8 @@ process({{Y, M, D}, Time}, SearchingDayOfMonth) ->
     end.
 
 
-%%
-%%
+%% @doc
+%% Day of month search recursive function
 %%
 increment({{Y, M, D}, Time}, SearchingDayOfMonth) ->
     {{NewYear, NewMonth, NewDay}, NewTime} = time:add_time({{Y, M, D}, Time}, 86400),
@@ -36,10 +43,22 @@ increment({{Y, M, D}, Time}, SearchingDayOfMonth) ->
     end.
 
 
-%% Test
-test() ->
-    {{{2016,9,8},{0,0,0}}, true} = process({{2016,9,7},{12,14,1}}, 8),
-    {{{2016,11,1},{0,0,0}}, true} = process({{2016,10,18},{10,20,15}}, 1),
-    {{{2017,2,18},{10,20,15}}, false} = process({{2017,2,18},{10,20,15}}, 18).
+
+%%%===================================================================
+%%% EUnit tests
+%%%===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+process_test_() ->
+    [
+        ?_assertEqual(process({{2016,9,7},{12,14,1}},    [8]),           {{{2016,9,8},{0,0,0}},    true}),
+        ?_assertEqual(process({{2016,10,18},{10,20,15}}, [1]),          {{{2016,11,1},{0,0,0}},    true}),
+        ?_assertEqual(process({{2017,2,18},{10,20,15}},  [18]),         {{{2017,2,18},{10,20,15}}, false}),
+        ?_assertEqual(process({{2018,6,14},{10,20,15}},  [12, 18, 19]), {{{2018,6,18},{0,0,0}},    true})
+    ].
+
+-endif.
 
 

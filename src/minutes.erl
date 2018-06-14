@@ -11,13 +11,17 @@
 
 %% API
 -export([
-  process/2,
-  test/0
+    process/2
 ]).
 
 
-%%
-%%
+
+%%%===================================================================
+%%% API
+%%%===================================================================
+
+%% @doc
+%% Find next minutes from cron expression
 %%
 process({Date, {H, I, S}}, SearchingMinute) ->
   IsInList = lists:member(I, SearchingMinute),
@@ -27,8 +31,13 @@ process({Date, {H, I, S}}, SearchingMinute) ->
   end.
 
 
-%%
-%%
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+%% @doc
+%% Minutes search recursive function
 %%
 increment({Date, {H, I, S}}, SearchingMinute) ->
     {NewDate, {NewHours, NewMinutes, NewSeconds}} = time:add_time({Date, {H, I, S}}, 60),
@@ -39,10 +48,22 @@ increment({Date, {H, I, S}}, SearchingMinute) ->
     end.
 
 
-%% Test
-test() ->
-    {{{2016,9,7},{13,8,0}}, true} = process({{2016,9,7},{12,14,1}}, 8),
-    {{{2016,10,19},{0,50,0}}, true} = process({{2016,10,18},{23,57,15}}, 50),
-    {{{2017,2,18},{10,20,15}}, false} = process({{2017,2,18},{10,20,15}}, 20).
+
+%%%===================================================================
+%%% EUnit tests
+%%%===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+process_test_() ->
+    [
+        ?_assertEqual(process({{2016,9,7},{12,14,1}},    [8]),      {{{2016,9,7},{13,8,0}},    true}),
+        ?_assertEqual(process({{2016,10,18},{23,57,15}}, [50]),     {{{2016,10,19},{0,50,0}},  true}),
+        ?_assertEqual(process({{2017,2,18},{10,20,15}},  [20]),     {{{2017,2,18},{10,20,15}}, false}),
+        ?_assertEqual(process({{2018,6,14},{10,20,15}},  [12, 18]), {{{2018,6,14},{11,12,0}},  true})
+    ].
+
+-endif.
 
 
