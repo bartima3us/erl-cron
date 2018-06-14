@@ -2,3 +2,5 @@
 !/ebin/.gitkeep
 /.rebar
 /.idea
+/.eunit
+/_build
