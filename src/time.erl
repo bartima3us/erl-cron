@@ -38,7 +38,7 @@ get_next_run_date(Expression) when is_list(Expression) ->
 
 
 %% @doc
-%% Convert seconds to datetime, add seconds and then convert datetime back to seconds
+%% Convert datetime to Gregorian seconds, add seconds and then convert seconds back to datetime
 %%
 add_time(DateTime = {{_,_,_},{_,_,_}}, Seconds) ->
     calendar:gregorian_seconds_to_datetime(calendar:datetime_to_gregorian_seconds(DateTime) + Seconds).
@@ -119,5 +119,21 @@ search(IteratingId, StopIndex, Parts, ResultDateTime) ->
         _ -> IteratingId + 1
     end,
     search(NextIteratingId, NewStopIndex, Parts, NewResultDateTime).
+
+
+
+%%%===================================================================
+%%% EUnit tests
+%%%===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+process_test_() ->
+    [
+        ?_assertEqual(add_time({{2018,7,1},{12,15,10}}, 100), {{2018,7,1},{12,16,50}})
+    ].
+
+-endif.
 
 
