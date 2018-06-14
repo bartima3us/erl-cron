@@ -10,7 +10,9 @@
 -author("sarunas").
 
 %% API
--export([process/1]).
+-export([
+    process/1
+]).
 
 
 

@@ -10,8 +10,14 @@
 -author("sarunas").
 
 %% API
--export([f/1]).
+-export([
+  f/1
+]).
 
+
+%% @doc
+%% Function for test purposes
+%%
 f(A) ->
   io:format("done ~p~n", [A]).
 
