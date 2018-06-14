@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : $fulldate
 %%%-------------------------------------------------------------------
--module(cron_server).
+-module(erl_cron_server).
 
 -behaviour(gen_server).
 
@@ -83,7 +83,7 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({add, Expression, Task, Name}, _From, Data = #data{jobs = CurrentJobs}) ->
-    RunDate = time:get_next_run_date(Expression),
+    RunDate = erl_cron_time:get_next_run_date(Expression),
     NewJob = #job{ref = Ref} = create_job(Name, make_ref(), Task, Expression, RunDate),
     {reply, {ok, Ref}, Data#data{jobs = [NewJob|CurrentJobs]}};
 
@@ -144,7 +144,7 @@ handle_info({'DOWN', MonitorRef, process, _Pid, normal}, Data = #data{jobs = Job
         task        = Task,
         expression  = Expression
     } = OldJob,
-    RunDate = time:get_next_run_date(Expression),
+    RunDate = erl_cron_time:get_next_run_date(Expression),
     NewJob = create_job(Name, Ref, Task, Expression, RunDate),
     {noreply, Data#data{jobs = [NewJob|NewJobsList]}}.
 
@@ -247,8 +247,8 @@ delete_all() ->
 %% Create new job record
 %%
 create_job(Name, Ref, Task, Expression, RunDate) ->
-    TimeToExecute = time:get_execute_time(Expression),
-    {ok, Pid} = job:start_link([{TimeToExecute, Task}]),
+    TimeToExecute = erl_cron_time:get_execute_time(Expression),
+    {ok, Pid} = erl_cron_job:start_link([{TimeToExecute, Task}]),
     MonitorRef = erlang:monitor(process, Pid),
     #job{
         name        = Name,

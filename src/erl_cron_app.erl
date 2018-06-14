@@ -1,4 +1,4 @@
--module(cron_app).
+-module(erl_cron_app).
 
 -behaviour(application).
 
@@ -13,7 +13,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    cron_sup:start_link().
+    erl_cron_sup:start_link().
 
 stop(_State) ->
     ok.

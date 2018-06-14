@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. Sep 2016 03.09
 %%%-------------------------------------------------------------------
--module(minutes).
+-module(erl_cron_minutes).
 -author("sarunas").
 
 %% API
@@ -40,7 +40,7 @@ process({Date, {H, I, S}}, SearchingMinute) ->
 %% Minutes search recursive function
 %%
 increment({Date, {H, I, S}}, SearchingMinute) ->
-    {NewDate, {NewHours, NewMinutes, NewSeconds}} = time:add_time({Date, {H, I, S}}, 60),
+    {NewDate, {NewHours, NewMinutes, NewSeconds}} = erl_cron_time:add_time({Date, {H, I, S}}, 60),
     IsInList = lists:member(NewMinutes, SearchingMinute),
     case IsInList of
         true  -> {NewDate,{NewHours,NewMinutes,0}};

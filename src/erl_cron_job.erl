@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 29. Sep 2016 21.23
 %%%-------------------------------------------------------------------
--module(job).
+-module(erl_cron_job).
 -author("sarunas").
 
 -behaviour(gen_server).

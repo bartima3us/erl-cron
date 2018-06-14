@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. Sep 2016 03.10
 %%%-------------------------------------------------------------------
--module(day_of_week).
+-module(erl_cron_day_of_week).
 -author("sarunas").
 
 %% API
@@ -41,7 +41,7 @@ process({Date, Time}, SearchingDayOfWeek) ->
 %% Day of week search recursive function
 %%
 increment({Date, Time}, SearchingDayOfWeek) ->
-    {NewDate, NewTime} = time:add_time({Date, Time}, 86400),
+    {NewDate, NewTime} = erl_cron_time:add_time({Date, Time}, 86400),
     DayOfWeek = calendar:day_of_the_week(NewDate),
     IsInList = lists:member(DayOfWeek, SearchingDayOfWeek),
     case IsInList of

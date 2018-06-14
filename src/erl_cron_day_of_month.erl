@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. Sep 2016 03.10
 %%%-------------------------------------------------------------------
--module(day_of_month).
+-module(erl_cron_day_of_month).
 -author("sarunas").
 
 %% API
@@ -35,7 +35,7 @@ process({{Y, M, D}, Time}, SearchingDayOfMonth) ->
 %% Day of month search recursive function
 %%
 increment({{Y, M, D}, Time}, SearchingDayOfMonth) ->
-    {{NewYear, NewMonth, NewDay}, NewTime} = time:add_time({{Y, M, D}, Time}, 86400),
+    {{NewYear, NewMonth, NewDay}, NewTime} = erl_cron_time:add_time({{Y, M, D}, Time}, 86400),
     IsInList = lists:member(NewDay, SearchingDayOfMonth),
     case IsInList of
         true  -> {{NewYear, NewMonth, NewDay}, NewTime};
@@ -53,7 +53,7 @@ increment({{Y, M, D}, Time}, SearchingDayOfMonth) ->
 
 process_test_() ->
     [
-        ?_assertEqual(process({{2016,9,7},{12,14,1}},    [8]),           {{{2016,9,8},{0,0,0}},    true}),
+        ?_assertEqual(process({{2016,9,7},{12,14,1}},    [8]),          {{{2016,9,8},{0,0,0}},    true}),
         ?_assertEqual(process({{2016,10,18},{10,20,15}}, [1]),          {{{2016,11,1},{0,0,0}},    true}),
         ?_assertEqual(process({{2017,2,18},{10,20,15}},  [18]),         {{{2017,2,18},{10,20,15}}, false}),
         ?_assertEqual(process({{2018,6,14},{10,20,15}},  [12, 18, 19]), {{{2018,6,18},{0,0,0}},    true})

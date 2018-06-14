@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. Sep 2016 03.09
 %%%-------------------------------------------------------------------
--module(months).
+-module(erl_cron_months).
 -author("sarunas").
 
 %% API
@@ -41,7 +41,7 @@ process({{Y, M, D}, Time}, SearchingMonth) ->
 %%
 increment({{Y, M, _D}, Time}, SearchingMonth) ->
     LastDayOfMonth = calendar:last_day_of_the_month(Y, M),
-    {{NewYear, NewMonth, NewDay}, Time} = time:add_time({{Y, M, LastDayOfMonth}, Time}, 86400),
+    {{NewYear, NewMonth, NewDay}, Time} = erl_cron_time:add_time({{Y, M, LastDayOfMonth}, Time}, 86400),
     IsInList = lists:member(NewMonth, SearchingMonth),
     case IsInList of
         true  -> {{NewYear, NewMonth, NewDay},{0,0,0}};

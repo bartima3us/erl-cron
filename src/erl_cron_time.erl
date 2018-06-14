@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. Sep 2016 13.02
 %%%-------------------------------------------------------------------
--module(time).
+-module(erl_cron_time).
 -author("sarunas").
 
 %% API
@@ -74,7 +74,13 @@ split(Expression) when is_list(Expression) ->
 %% Make proplist of time units
 %%
 map([Minutes, Hours, DayOfMonth, Months, DayOfWeek]) ->
-    [{months, Months}, {day_of_month, DayOfMonth}, {day_of_week, DayOfWeek}, {hours, Hours}, {minutes, Minutes}].
+    [
+        {erl_cron_months, Months},
+        {erl_cron_day_of_month, DayOfMonth},
+        {erl_cron_day_of_week, DayOfWeek},
+        {erl_cron_hours, Hours},
+        {erl_cron_minutes, Minutes}
+    ].
 
 
 %% @doc
@@ -94,7 +100,7 @@ index([], Result, _Iteration) ->
     lists:reverse(Result);
 
 index([{Module, Part}|Rest], Result, Iteration) ->
-    FormattedPart = parser:process({Module, Part}),
+    FormattedPart = erl_cron_parser:process({Module, Part}),
     index(Rest, [{Iteration, {Module, FormattedPart}}|Result], Iteration + 1).
 
 
